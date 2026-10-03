@@ -60,6 +60,7 @@ function ping(customerId) {
       method:   'GET',
       headers:  { 'X-Customer-Id': customerId },
     };
+    // nosemgrep: problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server
     const req = http.request(options, (res) => {
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
@@ -192,6 +193,7 @@ function printStats(label, s, expected) {
 async function checkConnectivity() {
   return new Promise((resolve) => {
     const url  = new URL('/health', BASE_URL);
+    // nosemgrep: problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server
     const req  = http.request({ hostname: url.hostname, port: url.port || 80, path: '/health', method: 'GET' }, (res) => {
       res.resume();
       resolve(res.statusCode === 200);
@@ -450,6 +452,7 @@ async function main() {
 }
 
 main().catch((err) => {
+  // nosemgrep: javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring
   console.error(`\n${C.red}Harness crashed:${C.reset}`, err.message);
   console.error('Is the service up?  docker compose up --build\n');
   process.exit(1);

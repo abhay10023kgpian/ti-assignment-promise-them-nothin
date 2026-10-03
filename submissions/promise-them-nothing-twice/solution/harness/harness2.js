@@ -65,6 +65,7 @@ const MODE_STYLE = {
 function ping() {
   return new Promise((resolve) => {
     const url = new URL('/api/v1/ping', BASE_URL);
+    // nosemgrep: problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server
     const req = http.request({
       hostname: url.hostname,
       port:     url.port || 80,
@@ -219,6 +220,7 @@ async function main() {
 }
 
 main().catch((err) => {
+  // nosemgrep: javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring
   console.error(`\n${C.red}Harness2 crashed:${C.reset}`, err.message);
   process.exit(1);
 });

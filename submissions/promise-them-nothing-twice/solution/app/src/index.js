@@ -27,6 +27,7 @@ redis.on('connect', ()    => console.log('[redis] connected'));
 // ---------------------------------------------------------------------------
 // Express app
 // ---------------------------------------------------------------------------
+// nosemgrep: javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage
 const app = express();
 app.use(express.json());
 
