@@ -1,0 +1,65 @@
+{
+  "customer-alpha": {
+    "name": "Customer Alpha",
+    "tier": "starter",
+    "rpm": 100
+  },
+  "customer-beta": {
+    "name": "Customer Beta",
+    "tier": "starter",
+    "rpm": 100
+  },
+  "northwind": {
+    "name": "Northwind Logistics",
+    "tier": "enterprise",
+    "rpm": 300,
+    "batch_window": {
+      "start_utc": "02:00",
+      "end_utc": "04:00",
+      "rpm": 1500,
+      "grace_minutes": 5
+    }
+  },
+  "harness-sc1": { "name": "Harness Sc1 Under-quota",    "tier": "starter",    "rpm": 100 },
+  "harness-sc2": { "name": "Harness Sc2 At-quota",       "tier": "starter",    "rpm": 100 },
+  "harness-sc3": { "name": "Harness Sc3 Over-quota",     "tier": "starter",    "rpm": 100 },
+  "harness-sc4a":{ "name": "Harness Sc4 Isolation-A",    "tier": "starter",    "rpm": 100 },
+  "harness-sc4b":{ "name": "Harness Sc4 Isolation-B",    "tier": "starter",    "rpm": 100 },
+  "harness-sc5": { "name": "Harness Sc5 Node-dist",      "tier": "starter",    "rpm": 100 },
+  "harness-nw1": { "name": "Harness NW under-contract",  "tier": "enterprise", "rpm": 300 },
+  "harness-nw2": { "name": "Harness NW over-contract",   "tier": "enterprise", "rpm": 300 },
+  "harness-nw3": {
+    "name": "Harness NW batch-under",
+    "tier": "enterprise",
+    "rpm": 300,
+    "batch_window": { "start_utc": "00:00", "end_utc": "23:59", "rpm": 1500, "grace_minutes": 5 }
+  },
+  "harness-nw4": {
+    "name": "Harness NW batch-over",
+    "tier": "enterprise",
+    "rpm": 300,
+    "batch_window": { "start_utc": "00:00", "end_utc": "23:59", "rpm": 1500, "grace_minutes": 5 }
+  },
+  "harness-nw5": {
+    "name": "Harness NW batch-isolation",
+    "tier": "enterprise",
+    "rpm": 300,
+    "batch_window": { "start_utc": "00:00", "end_utc": "23:59", "rpm": 1500, "grace_minutes": 5 }
+  },
+  "harness-iso-other": {
+    "name": "Harness NW isolation-other",
+    "tier": "starter",
+    "rpm": 100
+  },
+  "harness-grace": {
+    "name": "Harness Grace Period Test",
+    "tier": "enterprise",
+    "rpm": 300,
+    "batch_window": {
+      "start_utc": "12:00",
+      "end_utc": "12:13",
+      "rpm": 1500,
+      "grace_minutes": 3
+    }
+  }
+}

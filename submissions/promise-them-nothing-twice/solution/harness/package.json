@@ -1,0 +1,13 @@
+{
+  "name": "relay-api-harness",
+  "version": "1.0.0",
+  "description": "RelayAPI load harness — zero external dependencies",
+  "main": "harness.js",
+  "scripts": {
+    "start": "node harness.js",
+    "test":  "node harness.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

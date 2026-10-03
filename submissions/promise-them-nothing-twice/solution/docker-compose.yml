@@ -1,0 +1,95 @@
+services:
+
+  # ── Shared rate-limit state ──────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: relay-redis
+    ports:
+      - "6379:6379"           # exposed for local inspection / harness direct access
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - relay-net
+
+  # ── App nodes — three identical instances, different NODE_ID ─────────────
+  app1:
+    build: ./app
+    container_name: relay-app1
+    environment:
+      NODE_ID: node-1
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3001:3000"           # direct port for debugging a specific node
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - relay-net
+
+  app2:
+    build: ./app
+    container_name: relay-app2
+    environment:
+      NODE_ID: node-2
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3002:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - relay-net
+
+  app3:
+    build: ./app
+    container_name: relay-app3
+    environment:
+      NODE_ID: node-3
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3003:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - relay-net
+
+  # ── Load balancer — round-robin across app1/app2/app3 ────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: relay-nginx
+    ports:
+      - "8080:80"             # single entry point for harness and manual testing
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+      - app3
+    networks:
+      - relay-net
+
+  # ── Load harness — run with: docker compose --profile harness run harness ──
+  harness:
+    build: ./harness
+    container_name: relay-harness
+    profiles: ["harness"]
+    environment:
+      BASE_URL: http://nginx
+    depends_on:
+      - nginx
+    networks:
+      - relay-net
+
+networks:
+  relay-net:
+    driver: bridge

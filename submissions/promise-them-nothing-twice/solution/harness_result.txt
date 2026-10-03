@@ -1,0 +1,394 @@
+PS C:\Users\abhay\Desktop\WEB dev\Projects\RelayAPI-rate_limiter\solution\harness> node harness.js
+
+
+  ╔══════════════════════════════════════════════════════════╗
+  ║       RelayAPI Rate Limiter — Load Harness v2           ║
+  ║       Stakeholder 1 + Stakeholder 2 (Northwind)        ║
+  ╚══════════════════════════════════════════════════════════╝
+
+  Target   : http://localhost:8080
+  Started  : 2026-10-02T14:04:10.795Z
+  Concurrency: 20 parallel requests
+
+  Checking connectivity... ✓ OK
+
+  ═══ PART 1: Stakeholder 1 — CTO (Hard Enforcement) ═══
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 1: Under Quota — 80 req vs limit 100             │
+  └──────────────────────────────────────────────────────────┘
+
+  customer-alpha-like | 80 req | limit=100 RPM
+  ······················································
+  Sent        80  ████████████████████████
+  Allowed     80  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Node distribution:
+    node-1        █████████░░░░░░░░░░░░░░░  31
+    node-2        ████████░░░░░░░░░░░░░░░░  26
+    node-3        ███████░░░░░░░░░░░░░░░░░  23
+
+  Expected  allowed ∈ [80, 80]  rejected ∈ [0, 0]
+    PASS  
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 2: At Quota Boundary — 100 req vs limit 100      │
+  └──────────────────────────────────────────────────────────┘
+
+  100 req | limit=100 RPM | 100th request must be allowed
+  ······················································
+  Sent       100  ████████████████████████
+  Allowed    100  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Node distribution:
+    node-1        ███████░░░░░░░░░░░░░░░░░  31
+    node-2        ████████░░░░░░░░░░░░░░░░  35
+    node-3        ████████░░░░░░░░░░░░░░░░  34
+
+  Expected  allowed ∈ [100, 100]  rejected ∈ [0, 0]
+    PASS  
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 3: Over Quota Boundary — 130 req vs limit 100    │
+  └──────────────────────────────────────────────────────────┘
+
+  130 req | limit=100 RPM | ~100 allowed, ~30 rejected
+  ······················································
+  Sent       130  ████████████████████████
+  Allowed    100  ██████████████████░░░░░░  77%
+  Rejected    30  ██████░░░░░░░░░░░░░░░░░░  23%
+  Avg Retry-After: 60.0s
+
+  Node distribution:
+    node-1        ████████░░░░░░░░░░░░░░░░  45
+    node-2        ████████░░░░░░░░░░░░░░░░  42
+    node-3        ████████░░░░░░░░░░░░░░░░  43
+
+  Expected  allowed ∈ [98, 102]  rejected ∈ [28, ∞]
+    PASS  
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 4: Customer Isolation — two customers, 80 req each│
+  └──────────────────────────────────────────────────────────┘
+
+  Customer A: 80 req | limit=100
+  ······················································
+  Sent        80  ████████████████████████
+  Allowed     80  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Node distribution:
+    node-1        █████████░░░░░░░░░░░░░░░  29
+    node-2        ████████░░░░░░░░░░░░░░░░  27
+    node-3        ███████░░░░░░░░░░░░░░░░░  24
+
+  Expected  allowed ∈ [80, 80]  rejected ∈ [0, 0]
+    PASS  
+
+  Customer B: 80 req | limit=100
+  ······················································
+  Sent        80  ████████████████████████
+  Allowed     80  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Node distribution:
+    node-1        ███████░░░░░░░░░░░░░░░░░  24
+    node-2        ████████░░░░░░░░░░░░░░░░  27
+    node-3        █████████░░░░░░░░░░░░░░░  29
+
+  Expected  allowed ∈ [80, 80]  rejected ∈ [0, 0]
+    PASS  
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 5: Round-Robin Node Distribution — 90 req        │
+  └──────────────────────────────────────────────────────────┘
+
+  90 requests via nginx round-robin
+  ······················································
+  node-1          ████████░░░░░░░░░░░░░░░░  30 req
+  node-2          ████████░░░░░░░░░░░░░░░░  31 req
+  node-3          ████████░░░░░░░░░░░░░░░░  29 req
+
+  Nodes seen: 3  |  spread: 2 (max-min, expect ≤ 18)
+    PASS  
+
+  ═══ PART 2: Stakeholder 2 — Support (Northwind Batch Window) ═══
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 6: Northwind — Sub-contract (250 req vs 300 RPM) │
+  └──────────────────────────────────────────────────────────┘
+
+  northwind | 250 req | contracted=300 RPM | no batch window
+  ······················································
+  Sent       250  ████████████████████████
+  Allowed    250  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Node distribution:
+    node-1        ████████░░░░░░░░░░░░░░░░  84
+    node-2        ████████░░░░░░░░░░░░░░░░  83
+    node-3        ████████░░░░░░░░░░░░░░░░  83
+
+  Expected  allowed ∈ [250, 250]  rejected ∈ [0, 0]
+    PASS  
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 7: Northwind — Over Contract, NO Batch Window (400 req vs 300)│ 
+  └──────────────────────────────────────────────────────────┘
+
+  northwind | 400 req | contracted=300 RPM | this is what Marcus escalated    
+  ······················································
+  Sent       400  ████████████████████████
+  Allowed    300  ██████████████████░░░░░░  75%
+  Rejected   100  ██████░░░░░░░░░░░░░░░░░░  25%
+  Avg Retry-After: 60.0s
+
+  Node distribution:
+    node-1        ████████░░░░░░░░░░░░░░░░  133
+    node-2        ████████░░░░░░░░░░░░░░░░  133
+    node-3        ████████░░░░░░░░░░░░░░░░  134
+
+  Expected  allowed ∈ [295, 305]  rejected ∈ [95, ∞]
+    PASS  
+
+  ⚠  These 429s are the Marcus Webb escalation.
+     Scenarios 8–10 prove the batch window resolves this.
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 8: Northwind Batch — 1100 req vs elevated 1500 RPM│
+  └──────────────────────────────────────────────────────────┘
+
+  northwind batch | 1100 req | elevated=1500 RPM | 0 rejections expected      
+  ······················································
+  Sent      1100  ████████████████████████
+  Allowed   1100  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Rate-limit mode:
+    batch-window      1100 responses
+
+  Node distribution:
+    node-1        ████████░░░░░░░░░░░░░░░░  366
+    node-2        ████████░░░░░░░░░░░░░░░░  367
+    node-3        ████████░░░░░░░░░░░░░░░░  367
+
+  Expected  allowed ∈ [1100, 1100]  rejected ∈ [0, 0]
+    PASS  
+
+  Batch-window mode responses: 1100 / 1100
+    PASS    (mode header present)
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 9: Northwind Batch — OVER Elevated Ceiling (1700 vs 1500)│      
+  └──────────────────────────────────────────────────────────┘
+
+  northwind batch | 1700 req | elevated=1500 RPM | ~200 rejections expected
+  ······················································
+  Sent      1700  ████████████████████████
+  Allowed   1500  █████████████████████░░░  88%
+  Rejected   200  ███░░░░░░░░░░░░░░░░░░░░░  12%
+  Avg Retry-After: 58.0s
+
+  Rate-limit mode:
+    batch-window      1700 responses
+
+  Node distribution:
+    node-1        ████████░░░░░░░░░░░░░░░░  567
+    node-2        ████████░░░░░░░░░░░░░░░░  567
+    node-3        ████████░░░░░░░░░░░░░░░░  566
+
+  Expected  allowed ∈ [1490, 1510]  rejected ∈ [190, ∞]
+    PASS  
+
+  ┌──────────────────────────────────────────────────────────┐
+  │        NORTHWIND OVERAGE REPORT (Contract Data)          │
+  └──────────────────────────────────────────────────────────┘
+  ────────────────────────────────────────────────────────
+  Contracted RPM           :  300
+  Elevated batch ceiling   :  1500
+  Requests sent (this test):  1700
+  Requests allowed         :  1500  (effective peak RPM)
+  Requests rejected (429)  :  200  (11.8% of total)
+  Avg Retry-After          :  58.0s
+  ────────────────────────────────────────────────────────
+  Conclusion: Northwind's workload exceeds even the
+  elevated 1500 RPM ceiling. 200 requests were rejected.
+  Contract renewal should target ≥ 1500 RPM.
+  ────────────────────────────────────────────────────────
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  Scenario 10: Batch Isolation — NW at 1200 + other at 80 (concurrent)│    
+  └──────────────────────────────────────────────────────────┘
+
+  Northwind (batch, 1200 req, elevated=1500)
+  ······················································
+  Sent      1200  ████████████████████████
+  Allowed   1200  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Rate-limit mode:
+    batch-window      1200 responses
+
+  Node distribution:
+    node-1        ████████░░░░░░░░░░░░░░░░  399
+    node-2        ████████░░░░░░░░░░░░░░░░  402
+    node-3        ████████░░░░░░░░░░░░░░░░  399
+
+  Expected  allowed ∈ [1200, 1200]  rejected ∈ [0, 0]
+    PASS  
+
+  Other customer (80 req, limit=100) — must be unaffected
+  ······················································
+  Sent        80  ████████████████████████
+  Allowed     80  ████████████████████████  100%
+  Rejected     0  ░░░░░░░░░░░░░░░░░░░░░░░░  0%
+
+  Node distribution:
+    node-1        █████████░░░░░░░░░░░░░░░  29
+    node-2        ███████░░░░░░░░░░░░░░░░░  24
+    node-3        ████████░░░░░░░░░░░░░░░░  27
+
+  Expected  allowed ∈ [80, 80]  rejected ∈ [0, 0]
+    PASS  
+
+
+  ╔══════════════════════════════════════════════════════════╗
+  ║  SUMMARY : 10 / 10 scenarios passed                             ║
+  ║  Result  : ✓ ALL PASS                                       ║
+  ╚══════════════════════════════════════════════════════════╝
+
+  ✓  Sc1   Under quota (80 req, limit 100)
+  ✓  Sc2   At quota boundary (100 req, limit 100)
+  ✓  Sc3   Over quota (130 req, limit 100)
+  ✓  Sc4   Customer isolation (2×80 req concurrent)
+  ✓  Sc5   Round-robin node distribution
+  ✓  Sc6   Northwind sub-contract (250 req, limit 300)
+  ✓  Sc7   Northwind over-contract, NO batch window (400 req)
+  ✓  Sc8   Northwind batch — under elevated ceiling (1100 req)
+  ✓  Sc9   Northwind batch — OVER elevated ceiling (1700 req)
+  ✓  Sc10  Batch isolation (NW@1200 + other@80, concurrent)
+
+
+
+
+// grace period result 
+
+
+>> node harness2.js
+
+
+  ╔══════════════════════════════════════════════════════════╗
+  ║       Grace Period Real-Time Test (harness2.js)         ║
+  ╚══════════════════════════════════════════════════════════╝
+
+  Customer      : harness-grace
+  Target        : http://localhost:8080
+  Contracted RPM: 300
+  Batch RPM     : 1500
+  Burst size    : 120 req every 10s
+
+  Expected transitions (UTC):
+    ■ BATCH   until  12:13 UTC   (limit = 1500)
+    ■ GRACE   12:13–12:16 UTC   (limit ramps 1500 → 300)
+    ■ NORMAL  after  12:16 UTC   (limit = 300)
+    Time source: Redis (shared across all nodes)
+
+  Current UTC: 12:11:40
+  Run time: ~8 minutes
+
+  TIME (UTC)   MODE      LIMIT   ALLOWED  REJECTED  REMAINING
+  ────────────────────────────────────────────────────────────────────        
+  12:11:42     BATCH      1500     120        0      1493
+  12:11:52     BATCH      1500     120        0      1376
+  12:12:03     BATCH      1500     120        0      1256
+  12:12:14     BATCH      1500     120        0      1075
+  12:12:25     BATCH      1500     120        0      1011
+  12:12:35     BATCH      1500     120        0       898
+  12:12:46     BATCH      1500     120        0       890
+  12:12:57     BATCH      1500     120        0       898
+  12:13:07     GRACE      1467     120        0       756
+  12:13:18     GRACE      1380     120        0       763
+  12:13:29     GRACE      1320     120        0       599
+  12:13:39     GRACE      1253     120        0       529
+  12:13:50     GRACE      1167     120        0       564
+  12:14:00     GRACE      1100     120        0       499
+  12:14:11     GRACE      1033     120        0       432
+  12:14:22     GRACE       953     120        0       351
+  12:14:32     GRACE       887     120        0       283
+  12:14:43     GRACE       813     120        0       209
+  12:14:54     GRACE       747     120        0       142
+  12:15:04     GRACE       673      73       47        70
+  12:15:15     GRACE       600      47       73        39
+  12:15:25     GRACE       533      53       67        51
+  12:15:36     GRACE       460      47       73        46
+  12:15:47     GRACE       393      53       67        52
+  12:15:57     GRACE       320      47       73        40
+  12:16:08     NORMAL      300     120        0       298
+  12:16:18     NORMAL      300     120        0       178
+  12:16:29     NORMAL      300      60       60        57
+  12:16:39     NORMAL      300       0      120         0
+  12:16:50     NORMAL      300       0      120         0
+  12:17:01     NORMAL      300       0      120         0
+  12:17:11     NORMAL      300     120        0       119
+  12:17:22     NORMAL      300     120        0       118
+  12:17:33     NORMAL      300      60       60        42
+  12:17:43     NORMAL      300       0      120         0
+  12:17:54     NORMAL      300       0      120         0
+
+
+
+
+// redis to local fallback harness result
+
+
+
+
+  ╔══════════════════════════════════════════════════════════╗
+  ║       Grace Period Real-Time Test (harness2.js)         ║
+  ╚══════════════════════════════════════════════════════════╝
+                                                                              
+  Customer      : harness-grace
+  Target        : http://localhost:8080
+  Contracted RPM: 300
+  Batch RPM     : 1500
+  Burst size    : 120 req every 10s
+
+  Expected transitions (UTC):
+    ■ BATCH   until  12:13 UTC   (limit = 1500)
+    ■ GRACE   12:13–12:16 UTC   (limit ramps 1500 → 300)
+    ■ NORMAL  after  12:16 UTC   (limit = 300)
+    Time source: Redis (shared across all nodes)
+
+  Current UTC: 14:25:29
+  Run time: ~8 minutes
+
+  TIME (UTC)   MODE      LIMIT   ALLOWED  REJECTED  REMAINING
+  ────────────────────────────────────────────────────────────────────
+  14:25:30     NORMAL      300     120        0       288
+  14:25:41     NORMAL      300     120        0       178
+  14:25:51     NORMAL      300      60       60        58
+  14:26:02     NORMAL      300       0      120         0
+  14:26:13     NORMAL      300       0      120         0
+  14:26:23     local-fallback     100     120        0        99
+  14:26:34     local-fallback     100     120        0        53
+  14:26:45     local-fallback     100      60       60        20
+  14:26:55     local-fallback     100       0      120         0
+  14:27:06     local-fallback     100       0      120         0
+  14:27:17     local-fallback     100       0      120         0
+  14:27:27     local-fallback     100     115        5        36
+  14:27:38     local-fallback     100     117        3        37
+  14:27:49     local-fallback     100      68       52        20
+  14:28:00     local-fallback     100       0      120         0
+  14:28:11     NORMAL      300     120        0       299
+  14:28:21     NORMAL      300     120        0       177
+  14:28:32     NORMAL      300      60       60        55
+  14:28:42     NORMAL      300       0      120         0
+  14:28:53     NORMAL      300       0      120         0
+  14:29:04     NORMAL      300       0      120         0
+  14:29:14     NORMAL      300     120        0       119
+  14:29:25     NORMAL      300     120        0       116
+  14:29:35     NORMAL      300      60       60        58
+  14:29:46     NORMAL      300       0      120         0
+  14:29:57     NORMAL      300       0      120         0
